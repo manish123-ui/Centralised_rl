@@ -11,7 +11,8 @@ This project implements a **centralized rate limiting service** using the **Toke
 
 ## 🏛️ High-Level Design
 
-<img width="1731" height="1268" alt="image" src="https://github.com/user-attachments/assets/895235ef-a0fe-4f6c-86f6-ebcc583267f5" />
+<img width="2597" height="1195" alt="image" src="https://github.com/user-attachments/assets/b99f2bf1-6b0e-430b-8d05-c90e0a5847bc" />
+
 
 ## 🚀 Features
 
