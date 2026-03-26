@@ -31,6 +31,8 @@ flowchart TD
     F --> H[Auth Service]
     F --> I[Analytics Service]
 
+
+```
 ## 🚀 Features
 
 - Centralized request throttling for microservices
