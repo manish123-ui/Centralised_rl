@@ -11,28 +11,8 @@ This project implements a **centralized rate limiting service** using the **Toke
 
 ## 🏛️ High-Level Design
 
-```mermaid
-flowchart TD
-    A[Client Request] --> B[API Gateway]
+<img width="1731" height="1268" alt="image" src="https://github.com/user-attachments/assets/895235ef-a0fe-4f6c-86f6-ebcc583267f5" />
 
-    B --> C[Rate Limit Filter / Limiting Service]
-
-    C --> D[Redis Cluster]
-
-    D --> D1[Redis Node 7000]
-    D --> D2[Redis Node 7001]
-    D --> D3[Redis Node 7002]
-
-    C --> E{Token Available?}
-
-    E -->|Yes| F[Forward Request]
-    E -->|No| G[Return HTTP 429]
-
-    F --> H[Auth Service]
-    F --> I[Analytics Service]
-
-
-```
 ## 🚀 Features
 
 - Centralized request throttling for microservices
