@@ -1,0 +1,43 @@
+server:
+  port: 4004
+
+spring:
+  cloud:
+    gateway:
+      server:
+        webflux:
+          routes:
+
+            # Auth service (NO authentication required)
+            - id: auth-service-route
+              uri: http://host.docker.internal:4005
+              predicates:
+                - Path=/auth/**
+              filters:
+                - StripPrefix=1
+
+            # Patient service (AUTH REQUIRED)
+            #- id: patient-service-route
+              #uri: http://host.docker.internal:4000
+              #predicates:
+              #  - Path=/api/patients/**
+              #filters:
+               # - StripPrefix=1
+               # - AuthValidation
+
+            # Doctor service
+            - id: Limiting-service-route
+              uri: http://host.docker.internal:4001
+              predicates:
+                - Path=/api/limit/**
+              filters:
+                - StripPrefix=1
+                - AuthValidation
+
+            # Swagger routing
+            - id: api-docs-patient-route
+              uri: http://host.docker.internal:4000
+              predicates:
+                - Path=/api-docs/patients
+              filters:
+                - RewritePath=/api-docs/patients,/v3/api-docs

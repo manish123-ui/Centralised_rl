@@ -1,0 +1,8 @@
+spring:
+  data:
+    redis:
+      cluster:
+        nodes:
+          - redis-7000:7000
+          - redis-7001:7001
+          - redis-7002:7002
