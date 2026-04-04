@@ -1,5 +1,5 @@
 server:
-  port: 4004
+  port: 4005
 
 spring:
   cloud:
@@ -10,7 +10,7 @@ spring:
 
             # Auth service (NO authentication required)
             - id: auth-service-route
-              uri: http://host.docker.internal:4005
+              uri: http://host.docker.internal:4004
               predicates:
                 - Path=/auth/**
               filters:

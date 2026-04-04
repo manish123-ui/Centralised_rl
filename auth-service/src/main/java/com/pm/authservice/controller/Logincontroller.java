@@ -38,10 +38,10 @@ public class Logincontroller {
     public Map<String, Object> validateToken(
             @RequestHeader("Authorization") String token) {
 
-        Long userId = jwtService.getUserIdfromToken(token);
+        String userId = jwtService.getNamefromToken(token);
 
         return Map.of(
-                "userId", userId
+                "userId", userId//here i am giving user id but it can be diff here and in that company id it can be diff so here i should return orginaztion name
         );
     }
 }

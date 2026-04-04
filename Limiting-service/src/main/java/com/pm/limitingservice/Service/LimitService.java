@@ -1,6 +1,7 @@
 package com.pm.limitingservice.Service;
 
 
+import com.pm.limitingservice.Config.ResourceNotfound;
 import com.pm.limitingservice.Controller.LimitResponse;
 import com.pm.limitingservice.Dtos.CustomerDto;
 import com.pm.limitingservice.Dtos.OwnerDto;
@@ -25,12 +26,11 @@ public class LimitService {
     private final ModelMapper modelMapper;
     private final OwnerRepository ownerRepository;
 
-    public LimitResponse getuserstatus(Integer userId, Integer companyId) {
-
+    public LimitResponse getuserstatus(Integer userId, String CompanyName) {
+        Owner owner = ownerRepository.findByOrganizationName(CompanyName)
+                .orElseThrow(() -> new ResourceNotfound("Company not found"));
+        Long companyId=owner.getId();
         String key = "rate:{company:" + companyId + "}:user:" + userId;
-
-        Owner owner = ownerRepository.findById(companyId.longValue()).orElse(null);
-
         long now = System.currentTimeMillis();
 
         Long result = redisTemplate.execute(

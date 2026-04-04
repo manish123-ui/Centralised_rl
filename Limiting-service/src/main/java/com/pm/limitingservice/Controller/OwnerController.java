@@ -33,7 +33,7 @@ public class OwnerController {
      */
     private final LimitService limitService;
     @GetMapping("{user_id}")
-    public LimitResponse getLimit(@PathVariable Integer user_id,@RequestHeader("X-Company-Id") Integer CompanyId){
+    public LimitResponse getLimit(@PathVariable Integer user_id,@RequestHeader("X-Company-Id") String CompanyId){
         return limitService.getuserstatus(user_id,CompanyId);
     }
     @Validated

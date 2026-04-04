@@ -7,7 +7,7 @@ RUN mvn clean package
 #new image for runtime phase
 FROM eclipse-temurin:21-jre
 WORKDIR /app
-COPY --from=builder /app/target/auth-service-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 4006
+COPY --from=builder /app/target/Limiting-service-0.0.1-SNAPSHOT.jar app.jar
+EXPOSE 4001
 #run when container start
 ENTRYPOINT ["java", "-jar", "app.jar"]
