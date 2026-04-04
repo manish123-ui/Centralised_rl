@@ -244,7 +244,3 @@ GitHub: manish123-ui
 Feel free to star the repository.
 
 
----
-
-# 🔥 This README is already good — but here’s how to make it look even better
-
