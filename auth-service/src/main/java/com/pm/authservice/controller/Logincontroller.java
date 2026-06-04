@@ -15,18 +15,19 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/auth/")
+@RequestMapping("/")
 @RequiredArgsConstructor
 public class Logincontroller {
     private final UserService userService;
     private final AuthService  authService;
     private final JwtService jwtService;
-    @GetMapping("genrate_token")
+    @PostMapping("genrate_token")
     public LoginResponseDto login(@RequestBody LoginDto userdto){
         LoginResponseDto loginResponseDto=authService.login(userdto);
         return loginResponseDto;
+
     }
-    @GetMapping("signup")
+    @PostMapping("signup")
     public UserDto signup(@RequestBody  SignupDto signupDto){
         return userService.signUp(signupDto);
     }
@@ -34,14 +35,14 @@ public class Logincontroller {
     public LoginResponseDto getrefreshToken(@RequestBody String refreshToken){
         return authService.refreshToken(refreshToken);
     }
-    @PostMapping("/validate")
+    @PostMapping("validate")
     public Map<String, Object> validateToken(
             @RequestHeader("Authorization") String token) {
 
         String userId = jwtService.getNamefromToken(token);
 
         return Map.of(
-                "userId", userId//here i am giving user id but it can be diff here and in that company id it can be diff so here i should return orginaztion name
+                "userId", userId //here i am giving user id but it can be diff here and in that company id it can be diff so here i should return orginaztion name
         );
     }
 }

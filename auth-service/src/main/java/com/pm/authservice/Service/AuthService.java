@@ -23,11 +23,16 @@ public class AuthService {
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(loginDto.getEmail(), loginDto.getPassword())
         );
+        System.out.println("here we go");
         User user = (User) authentication.getPrincipal();
+        System.out.println("here we go after get the user");
         String accessToken = jwtService.generateAccessToken(user);
+        System.out.println("here we go after access token");
         String refreshToken = jwtService.generateRefreshToken(user);
+        System.out.println("here we go after refresh token");
         sessionService.generateNewSession(user, refreshToken);
-        return new LoginResponseDto(user.getId(), accessToken, refreshToken);
+        System.out.println("here we go after new session");
+        return new LoginResponseDto(accessToken, refreshToken,"hey guyys");
     }
     public LoginResponseDto refreshToken(String refreshToken) {
         Long userId = jwtService.getUserIdfromToken(refreshToken);
@@ -35,6 +40,6 @@ public class AuthService {
         User user = userService.getUserById(userId);
 
         String accessToken = jwtService.generateAccessToken(user);
-        return new LoginResponseDto(user.getId(), accessToken, refreshToken);
+        return new LoginResponseDto(accessToken, refreshToken,"hey guyys");
     }
 }

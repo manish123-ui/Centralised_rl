@@ -12,7 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/limit/")
+@RequestMapping("/api/")
 @RequiredArgsConstructor
 public class OwnerController {
     /*
@@ -32,16 +32,16 @@ public class OwnerController {
     4.nooftoken now
      */
     private final LimitService limitService;
-    @GetMapping("{user_id}")
+    @GetMapping("limit/{user_id}")
     public LimitResponse getLimit(@PathVariable Integer user_id,@RequestHeader("X-Company-Id") String CompanyId){
         return limitService.getuserstatus(user_id,CompanyId);
     }
     @Validated
-    @PostMapping
+    @PostMapping("owner")
     public OwnerDto createLimit(@Validated @RequestBody OwnerDto customer){
         return limitService.createowner(customer);
     }
-    @GetMapping("{ownerId}")
+    @GetMapping("owner/{ownerId}")
     public ResponseEntity<OwnerDto> getOwner(@PathVariable Long ownerId) {
         Optional<OwnerDto> owner = limitService.getowner(ownerId);
 
@@ -51,7 +51,7 @@ public class OwnerController {
             throw new ResourceNotfound("Owner not found with this id " + ownerId);
         }
     }
-    @PutMapping("modify/")
+    @PutMapping("owner/modify/")
     public OwnerDto modifyLimit(@Validated @RequestBody OwnerDto customer){
         return limitService.modify(customer);
     }

@@ -8,6 +8,5 @@ RUN mvn clean package
 FROM eclipse-temurin:21-jre
 WORKDIR /app
 COPY --from=builder /app/target/auth-service-0.0.1-SNAPSHOT.jar app.jar
-EXPOSE 4005
 #run when container start
 ENTRYPOINT ["java", "-jar", "app.jar"]

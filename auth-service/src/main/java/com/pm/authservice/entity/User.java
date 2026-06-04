@@ -78,7 +78,6 @@ public class User implements UserDetails {
     public String getUsername() {
         return email;
     }
-
     // ===== Security flags =====
     @Override
     public boolean isAccountNonExpired() {

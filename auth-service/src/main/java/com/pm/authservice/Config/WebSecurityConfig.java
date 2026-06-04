@@ -34,12 +34,10 @@ public class WebSecurityConfig {
 
                 // Authorization rules
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers(HttpMethod.GET, "/calls/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/posts/**").permitAll()
-                        .requestMatchers("/auth/**", "/login/**", "/oauth2/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/**").permitAll()
                         .anyRequest().authenticated()
                 )
-
                 // JWT filter
                 .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
@@ -48,7 +46,6 @@ public class WebSecurityConfig {
                                 .failureUrl("/login?error=true")
                         // .successHandler(oAuth2SuccessHandler) // recommended
                 )*/
-
         return http.build();
     }
 

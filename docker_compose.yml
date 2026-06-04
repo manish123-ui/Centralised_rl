@@ -15,6 +15,7 @@ services:
       - "7000:7000"
     networks:
       - redis-net
+      - internal
 
   redis-7001:
     image: redis:7.2
@@ -30,6 +31,7 @@ services:
       - "7001:7001"
     networks:
       - redis-net
+      - internal
 
   redis-7002:
     image: redis:7.2
@@ -45,7 +47,11 @@ services:
       - "7002:7002"
     networks:
       - redis-net
+      - internal
 
 networks:
   redis-net:
     driver: bridge
+
+  internal:
+    external: true
