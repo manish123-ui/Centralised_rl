@@ -15,9 +15,8 @@ spring:
         - id: Limiting-service-route
           uri: http://limiting-service:4001
           predicates:
-            - Path=/api/limit/**
+            - Path=/api/**
           filters:
-            - StripPrefix=1
             - AuthValidation
 
         - id: api-docs-patient-route

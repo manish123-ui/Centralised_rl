@@ -29,16 +29,18 @@ public class LimitService {
     public LimitResponse getuserstatus(Integer userId, String CompanyName) {
         Owner owner = ownerRepository.findByOrganizationName(CompanyName)
                 .orElseThrow(() -> new ResourceNotfound("Company not found"));
+        System.out.println("hey got the owner");
         Long companyId=owner.getId();
         String key = "rate:{company:" + companyId + "}:user:" + userId;
+        System.out.println("using this key as in redis Key: " + key);
         long now = System.currentTimeMillis();
 
         Long result = redisTemplate.execute(
                 rateLimiterScript,
-                Collections.singletonList(key),   // KEYS
-                owner.getBucketSize(),            // ARGV[1]
-                owner.getFillingRate(),           // ARGV[2]
-                now                               // ARGV[3]
+                Collections.singletonList(key),          // KEYS[1]
+                String.valueOf(owner.getBucketSize()),   // ARGV[1]
+                String.valueOf(owner.getFillingRate()),  // ARGV[2]
+                String.valueOf(now)                      // ARGV[3]
         );
 
         if (result == null || result < 0) {
@@ -50,6 +52,7 @@ public class LimitService {
     // here for race around condn we can use redics template
 
     public OwnerDto createowner(OwnerDto ustomer) {
+        System.out.println("mapping the one to another class in createowner");
         Owner saveowner= modelMapper.map(ustomer, Owner.class);
         Owner SavedOwner= ownerRepository.save(saveowner);
         return  modelMapper.map(SavedOwner, OwnerDto.class);

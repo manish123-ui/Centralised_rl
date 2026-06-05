@@ -39,6 +39,7 @@ public class OwnerController {
     @Validated
     @PostMapping("owner")
     public OwnerDto createLimit(@Validated @RequestBody OwnerDto customer){
+        System.out.println("you are in controller for going to get the create owner dto");
         return limitService.createowner(customer);
     }
     @GetMapping("owner/{ownerId}")

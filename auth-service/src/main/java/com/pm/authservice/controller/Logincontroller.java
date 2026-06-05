@@ -35,12 +35,13 @@ public class Logincontroller {
     public LoginResponseDto getrefreshToken(@RequestBody String refreshToken){
         return authService.refreshToken(refreshToken);
     }
-    @PostMapping("validate")
+    @GetMapping("validate")
     public Map<String, Object> validateToken(
             @RequestHeader("Authorization") String token) {
+        System.out.println("i am validating your token");
 
         String userId = jwtService.getNamefromToken(token);
-
+        System.out.println("this is username"+ userId);
         return Map.of(
                 "userId", userId //here i am giving user id but it can be diff here and in that company id it can be diff so here i should return orginaztion name
         );

@@ -13,9 +13,10 @@ services:
       --appendonly yes
     ports:
       - "7000:7000"
+      - "17000:17000"
     networks:
       - redis-net
-      - internal
+      - internal # Bridges connection to your app
 
   redis-7001:
     image: redis:7.2
@@ -29,6 +30,7 @@ services:
       --appendonly yes
     ports:
       - "7001:7001"
+      - "17001:17001"
     networks:
       - redis-net
       - internal
@@ -45,13 +47,32 @@ services:
       --appendonly yes
     ports:
       - "7002:7002"
+      - "17002:17002"
     networks:
       - redis-net
       - internal
 
+  redis-cluster-creator:
+    image: redis:7.2
+    container_name: redis-cluster-creator
+    networks:
+      - redis-net # Only needs internal bridge to run the command
+    depends_on:
+      - redis-7000
+      - redis-7001
+      - redis-7002
+    command: >
+      sh -c "
+      sleep 3;
+      echo 'yes' | redis-cli --cluster create \
+      redis-7000:7000 \
+      redis-7001:7001 \
+      redis-7002:7002 \
+      --cluster-replicas 0;
+      "
+
 networks:
   redis-net:
     driver: bridge
-
   internal:
-    external: true
+    external: true # Pulls in your pre-existing network

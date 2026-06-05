@@ -4,6 +4,7 @@ package com.pm.authservice.Service;
 import com.pm.authservice.entity.User;
 import com.pm.authservice.repositories.UserRepositry;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -11,7 +12,6 @@ import org.springframework.stereotype.Service;
 import io.jsonwebtoken.Jwts;
 import javax.crypto.SecretKey;
 import java.nio.charset.StandardCharsets;
-import java.util.Base64;
 import java.util.Date;
 import java.util.Optional;
 
@@ -23,19 +23,30 @@ public class JwtService {
     private UserRepositry userRepositry;
     private SecretKey getSecretKey() {
         try {
-            // 1. Decode the base64 string
-            byte[] keyBytes = Base64.getDecoder().decode(jwtSecretKey);
+            System.out.println("-> getSecretKey() started");
 
-            // 2. Validate key length (Min 32 bytes for HS256)
-            if (keyBytes.length < 32) {
-                throw new IllegalArgumentException("JWT secret key must be at least 32 bytes (256 bits) long.");
+            if (jwtSecretKey == null) {
+                System.out.println("-> ERROR: jwtSecretKey is NULL!");
+                throw new IllegalArgumentException("Secret key is null");
             }
 
-            return Keys.hmacShaKeyFor(keyBytes);
-        } catch (IllegalArgumentException e) {
-            // 3. Catch decoding or length errors
-            System.err.println("Failed to generate SecretKey: " + e.getMessage());
-            throw e;
+            System.out.println("-> key string length: " + jwtSecretKey.length());
+
+            // Let's get the bytes
+            byte[] keyBytes = jwtSecretKey.getBytes(StandardCharsets.UTF_8);
+            System.out.println("-> Successfully got bytes. Byte length: " + keyBytes.length);
+
+            System.out.println("-> Attempting Keys.hmacShaKeyFor...");
+            SecretKey key = Keys.hmacShaKeyFor(keyBytes);
+            System.out.println("-> Keys.hmacShaKeyFor SUCCESSFUL!");
+
+            return key;
+        } catch (Throwable t) {
+            System.out.println("!!! CRITICAL ERROR INSIDE getSecretKey !!!");
+            System.out.println("Exception Type: " + t.getClass().getName());
+            System.out.println("Exception Message: " + t.getMessage());
+            t.printStackTrace(System.out); // Forces it to print to standard out logs
+            throw new RuntimeException(t);
         }
     }
 
@@ -55,7 +66,7 @@ public class JwtService {
                     .subject(user.getId().toString())
                     .claim("email", user.getEmail())
                     .issuedAt(new Date())
-                    .expiration(new Date(System.currentTimeMillis() + 1000 * 60 * 10))
+                    .expiration(new Date(System.currentTimeMillis() + 1000 * 10*60 * 10))
                     .signWith(secretKey)
                     .compact();
 
@@ -76,18 +87,42 @@ public class JwtService {
                 .signWith(getSecretKey())
                 .compact();
     }
-    public String getNamefromToken(String Token){
-        Claims claims = Jwts.parser()
-                .verifyWith(getSecretKey())
-                .build()
-                .parseSignedClaims(Token)
-                .getPayload();
-        Long id= Long.valueOf(claims.getSubject());
-        Optional<User> newuser=userRepositry.findById(id);
-        if(newuser.isPresent()){
-            return newuser.get().getName();
+    public String getNamefromToken(String Token) {
+        try {
+            // 1. Defend against null or empty strings
+            if (Token == null || Token.trim().isEmpty()) {
+                System.out.println("-> getNamefromToken failed: Token string is null or empty.");
+                return null;
+            }
+
+            // 2. Clean up Bearer prefix if present
+            if (Token.startsWith("Bearer ")) {
+                Token = Token.substring(7).trim();
+            }
+
+            Claims claims = Jwts.parser()
+                    .verifyWith(getSecretKey())
+                    .build()
+                    .parseSignedClaims(Token)
+                    .getPayload();
+
+            Long id = Long.valueOf(claims.getSubject());
+
+            Optional<User> newuser = userRepositry.findById(id);
+            if (newuser.isPresent()) {
+                return newuser.get().getName();
+            }
+
+            return null;
+
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            System.out.println("-> getNamefromToken failed: Token has expired.");
+            return null;
+        } catch (io.jsonwebtoken.JwtException e) {
+            System.out.println("-> getNamefromToken failed: Invalid token structure or signature mismatch.");
+            System.out.println("-> Checked Token Value was: " + Token);
+            return null;
         }
-        return null;
     }
     public Long getUserIdfromToken(String Token){
         Claims claims = Jwts.parser()
