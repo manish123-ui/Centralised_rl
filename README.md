@@ -130,7 +130,7 @@ This avoids issues where multiple requests update the same bucket simultaneously
 
 ## 🧩 Redis Cluster Setup
 
-This project uses a **3-node Redis setup** to distribute load.
+This project uses a **3-node Redis setup** to distribute load with consistent hashing network with approx 16k ring space .
 
 ### Redis Nodes:
 - `redis-7000`
