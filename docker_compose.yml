@@ -16,7 +16,7 @@ services:
       - "17000:17000"
     networks:
       - redis-net
-      - internal # Bridges connection to your app
+      - internal #because all other service on internal network
 
   redis-7001:
     image: redis:7.2
@@ -56,7 +56,7 @@ services:
     image: redis:7.2
     container_name: redis-cluster-creator
     networks:
-      - redis-net # Only needs internal bridge to run the command
+      - redis-net 
     depends_on:
       - redis-7000
       - redis-7001
@@ -75,4 +75,4 @@ networks:
   redis-net:
     driver: bridge
   internal:
-    external: true # Pulls in your pre-existing network
+    external: true 
