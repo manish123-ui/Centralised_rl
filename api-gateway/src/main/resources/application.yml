@@ -15,16 +15,20 @@ spring:
         - id: Limiting-service-route
           uri: http://limiting-service:4001
           predicates:
-            - Path=/api/**
+            - Path=/lim/**
           filters:
             - AuthValidation
+            - StripPrefix=1
 
-        - id: api-docs-patient-route
-          uri: http://patient-service:4000
-          predicates:
-            - Path=/api-docs/patients
-          filters:
-            - RewritePath=/api-docs/patients,/v3/api-docs
+springdoc:
+  swagger-ui:
+    urls:
+      - name: Auth Service
+        url: /auth/v3/api-docs
+
+      - name: Limiting Service
+        url: /lim/v3/api-docs
+
 logging:
   level:
     org.springframework.cloud.gateway: TRACE

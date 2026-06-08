@@ -30,6 +30,13 @@ public class AuthValidationGatewayFilterFactory extends
         return (exchange, chain) -> {
             String token = exchange.getRequest().getHeaders().getFirst(HttpHeaders.AUTHORIZATION);
 
+            String path = exchange.getRequest().getURI().getPath();
+
+            if (path.startsWith("/lim/v3/api-docs")
+                    || path.startsWith("/lim/swagger-ui")) {
+                return chain.filter(exchange);
+            }
+
             // 1. Validate if token is present and starts with Bearer
             if (token == null || !token.startsWith("Bearer ")) {
                 System.out.println("Missing or invalid authorization header format.");
