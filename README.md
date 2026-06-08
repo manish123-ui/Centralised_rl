@@ -7,7 +7,7 @@ The system provides **organization-level and user-level request throttling** usi
 Instead of embedding rate limiting logic inside every microservice, a dedicated Rate Limiting Service acts as a centralized control plane, ensuring consistency, scalability, and easier policy management across distributed systems.
 
 ---
-
+## 🏛️ High-Level Design <img width="2083" height="1298" alt="image" src="https://github.com/user-attachments/assets/b56ee6eb-93a9-44fe-a9df-1613e09ebb55" />
 # 📖 Problem Statement
 
 In a microservice ecosystem, multiple services often need to enforce API usage limits.
