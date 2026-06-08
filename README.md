@@ -1,58 +1,106 @@
 # 🚀 Centralized Distributed Rate Limiting System
 
-A production-style centralized rate limiting platform designed for microservice architectures.
+A production-style **Centralized Rate Limiting Platform** built for microservice architectures.
 
-The system provides **organization-level and user-level request throttling** using the **Token Bucket Algorithm**, backed by **Redis Cluster**, **Lua Scripting**, and **Spring Cloud Gateway**.
+The system uses a dedicated **Rate Limiting Service**, **Redis Cluster**, **Lua Scripting**, and **Spring Cloud Gateway** to provide scalable and consistent API throttling across distributed services.
 
-Instead of embedding rate limiting logic inside every microservice, a dedicated Rate Limiting Service acts as a centralized control plane, ensuring consistency, scalability, and easier policy management across distributed systems.
+Instead of implementing rate limiting logic inside every microservice, all traffic policies are enforced centrally through a dedicated service, ensuring consistency, scalability, and easier maintenance.
 
 ---
+
+## 📖 Problem Statement
+
+In large-scale microservice systems, multiple services often need to enforce request limits.
+
+Traditional approaches suffer from:
+
+* Duplicate rate limiting logic
+* Inconsistent enforcement
+* Difficult configuration management
+* Race conditions under high concurrency
+* Poor scalability
+
+This project solves these challenges through a centralized and distributed architecture.
+
+---
+
 ## 🏛️ High-Level Design <img width="2083" height="1298" alt="image" src="https://github.com/user-attachments/assets/b56ee6eb-93a9-44fe-a9df-1613e09ebb55" />
-# 📖 Problem Statement
 
-In a microservice ecosystem, multiple services often need to enforce API usage limits.
+## 🚀 Features
 
-Traditional approaches introduce several challenges:
-
-* Duplicate rate limiting logic across services
-* Inconsistent enforcement policies
-* Difficulty updating limits dynamically
-* Poor scalability under heavy traffic
-* Race conditions when multiple instances update counters simultaneously
-
-This project addresses these challenges by introducing a centralized and distributed rate limiting architecture.
-
----
-
-# 🏛️ System Architecture
-
-## High-Level Flow
-
-```text
-Client
-   │
-   ▼
-API Gateway
-   │
-   ▼
-Rate Limiting Service
-   │
-   ▼
-Redis Cluster
-   │
-   ▼
-Downstream Microservices
-```
+* Centralized Rate Limiting Service
+* Token Bucket Algorithm
+* Redis Cluster Based Storage
+* Lua Script Atomic Operations
+* JWT Based Organization Identification
+* Multi-Tenant Architecture
+* Per User Rate Limiting
+* Per Organization Configuration
+* Spring Cloud Gateway Integration
+* Dockerized Deployment
+* Distributed Key Sharding
+* High Concurrency Support
 
 ---
 
-## Request Lifecycle
+# 🧠 System Architecture
 
-### Step 1: User Authentication
+## Services
 
-A customer organization registers on the platform.
+### API Gateway
 
-```text
+Acts as the single entry point.
+
+Responsibilities:
+
+* Request Routing
+* JWT Validation
+* Calling Rate Limiting Service
+* Blocking Excess Requests
+* Forwarding Approved Requests
+
+---
+
+### Authentication Service
+
+Responsible for:
+
+* User Registration
+* Login
+* JWT Generation
+* JWT Validation
+* Refresh Token Generation
+
+---
+
+### Limiting Service
+
+Responsible for:
+
+* Token Bucket Management
+* Redis Cluster Communication
+* Lua Script Execution
+* Rate Limit Decision Making
+
+---
+
+### Analytics Service
+
+Future service for:
+
+* Monitoring
+* Metrics Collection
+* Usage Reporting
+
+---
+
+# 🔄 Complete Workflow
+
+## Step 1 — User Registration
+
+An organization registers on the platform.
+
+```http
 POST /signup
 ```
 
@@ -60,30 +108,40 @@ Example:
 
 ```json
 {
-  "organizationName":"Netflix"
+  "name":"Netflix",
+  "email":"admin@netflix.com",
+  "password":"******"
 }
 ```
 
-After authentication:
-
-```text
-POST /login
-```
-
-A JWT token is issued containing:
-
-* Organization ID
-* Organization Name
-* User Information
+The organization information is stored in the Auth Service.
 
 ---
 
-### Step 2: Organization Configures Limits
+## Step 2 — Login
 
-Organization administrators configure their traffic policy.
+```http
+POST /genrate_token
+```
 
-```text
-POST /api/owner/create
+A JWT token is generated.
+
+The JWT contains:
+
+* Organization Id
+* Organization Name
+* User Information
+
+This token is used for future requests.
+
+---
+
+## Step 3 — Configure Rate Limit Policy
+
+Organization owner configures limits.
+
+```http
+POST /api/owner
 ```
 
 Example:
@@ -95,41 +153,38 @@ Example:
 }
 ```
 
-Stored Configuration:
+Meaning:
 
-```text
-Organization A
-Bucket Size = 100
-Refill Rate = 20 tokens/sec
-```
+* Maximum Capacity = 100 Tokens
+* Refill Speed = 20 Tokens/Second
 
-Each organization can have its own independent limits.
+Each organization can define its own traffic policy.
 
 ---
 
-### Step 3: Client Request Arrives
-
-A request reaches the business service through the API Gateway.
+## Step 4 — Request Hits Gateway
 
 ```text
-/api/orders
+Client
+   ↓
+API Gateway
 ```
 
 Gateway extracts:
 
 * JWT Token
-* User ID
-* Route Information
+* User Id
+* Request Information
 
-and forwards a validation request to the Rate Limiting Service.
+Before forwarding the request, Gateway checks with Limiting Service.
 
 ---
 
-### Step 4: Unique Distributed Key Generation
+## Step 5 — Generate Distributed Bucket Key
 
-The Rate Limiting Service extracts the organization information from JWT.
+Limiting Service extracts organization information from JWT.
 
-A globally unique bucket key is generated:
+Bucket key format:
 
 ```text
 org:{organizationId}:user:{userId}
@@ -138,32 +193,22 @@ org:{organizationId}:user:{userId}
 Example:
 
 ```text
-org:17:user:991
+org:15:user:987
 ```
 
-This enables:
+Benefits:
 
-* Per-user limits
-* Per-organization isolation
-* Distributed storage across Redis Cluster
+* Tenant Isolation
+* User Level Control
+* Distributed Storage
 
 ---
 
-### Step 5: Redis Cluster Routing
+## Step 6 — Redis Cluster Routing
 
-The generated key is automatically hashed by Redis Cluster.
+The generated key is hashed automatically.
 
-```text
-Hash(key) % 16384
-```
-
-Redis maps the key into one of the cluster slots:
-
-```text
-0 - 16383 slots
-```
-
-Current cluster:
+Redis Cluster contains:
 
 ```text
 redis-7000
@@ -171,38 +216,46 @@ redis-7001
 redis-7002
 ```
 
+Redis divides keyspace into:
+
+```text
+16384 Slots
+```
+
+Keys are automatically distributed among nodes.
+
 Benefits:
 
-* Automatic sharding
-* Horizontal scalability
-* Even load distribution
+* Horizontal Scaling
+* Better Throughput
+* Load Distribution
 
 ---
 
-### Step 6: Atomic Token Bucket Execution
+## Step 7 — Atomic Token Bucket Execution
 
-The Rate Limiting Service executes a Lua script inside Redis.
+The Limiting Service executes a Lua Script.
 
 The script performs atomically:
 
 1. Read bucket state
 2. Calculate elapsed time
 3. Refill tokens
-4. Check availability
+4. Check token availability
 5. Consume token
-6. Save updated state
+6. Save state
 
-Because the entire operation executes server-side:
+Because everything runs inside Redis:
 
-* No race conditions
-* No lost updates
-* No distributed locking required
+* No Race Conditions
+* No Lost Updates
+* Single Network Roundtrip
 
 ---
 
-### Step 7: Decision
+## Step 8 — Decision
 
-### Request Allowed
+### Allowed
 
 ```json
 {
@@ -211,11 +264,11 @@ Because the entire operation executes server-side:
 }
 ```
 
-Gateway forwards request to downstream service.
+Gateway forwards request.
 
 ---
 
-### Request Rejected
+### Rejected
 
 ```json
 {
@@ -224,13 +277,11 @@ Gateway forwards request to downstream service.
 }
 ```
 
-Gateway immediately returns:
+Gateway returns:
 
 ```http
 HTTP/1.1 429 Too Many Requests
 ```
-
-without burdening downstream services.
 
 ---
 
@@ -239,34 +290,20 @@ without burdening downstream services.
 Each user receives a bucket.
 
 ```text
-Capacity = Bucket Size
+Bucket Capacity = Maximum Tokens
 ```
 
-Tokens are replenished continuously:
+Tokens are continuously refilled.
 
-```text
-tokens += refillRate × elapsedTime
-```
+Every request consumes one token.
 
-Every request consumes:
+If token exists:
 
-```text
-1 Token
-```
-
-If:
-
-```text
-tokens > 0
-```
-
-Request is allowed.
+✅ Request Allowed
 
 Otherwise:
 
-```text
-Request Rejected
-```
+❌ Request Rejected
 
 ---
 
@@ -274,155 +311,176 @@ Request Rejected
 
 Compared to Fixed Window:
 
-✅ Allows burst traffic
+* Allows burst traffic
+* Better user experience
+* Smooth rate limiting
+* Industry standard solution
 
-✅ Smooth traffic control
+Used by:
 
-✅ Better user experience
-
-✅ Commonly used by major API providers
-
-Examples:
-
-* AWS API Gateway
+* AWS
 * Stripe
-* GitHub APIs
+* GitHub
 * Cloudflare
 
 ---
 
-# ⚡ Redis Cluster Design
+# ⚡ Redis + Lua Design
 
-## Cluster Nodes
+## Why Redis?
 
-```text
-redis-7000
-redis-7001
-redis-7002
-```
+Redis provides:
 
-Redis Cluster divides keyspace into:
-
-```text
-16384 Hash Slots
-```
-
-Each node owns a subset of slots.
-
-Benefits:
-
-* Horizontal scaling
-* High throughput
-* Automatic key distribution
-* Reduced bottlenecks
+* In-Memory Performance
+* Distributed State Sharing
+* Low Latency Access
+* Horizontal Scalability
 
 ---
 
-# 🔥 Why Lua Scripting?
+## Why Lua?
 
 Without Lua:
 
 ```text
-GET bucket
-Calculate refill
-UPDATE bucket
+GET
+CALCULATE
+UPDATE
 ```
 
-Concurrent requests can overwrite each other.
+can create race conditions.
+
+Lua executes everything atomically inside Redis.
+
+Benefits:
+
+* Atomic Execution
+* Concurrency Safety
+* Better Performance
+* Consistent Results
+
+---
+
+# 🔑 Multi-Tenant Design
+
+Every organization receives independent limits.
 
 Example:
 
 ```text
-Thread A -> Reads 5 tokens
-Thread B -> Reads 5 tokens
+Netflix
+Bucket Size = 1000
 
-Both consume simultaneously
+Spotify
+Bucket Size = 500
 
-Result:
-Incorrect bucket state
+Amazon
+Bucket Size = 2000
 ```
 
-Lua executes the entire operation atomically inside Redis.
+Traffic from one organization never affects another.
 
-Benefits:
+This architecture is suitable for:
 
-* Race-condition free
-* Single network round trip
-* High performance
-* Strong consistency
-
----
-
-# 🌐 API Gateway Integration
-
-The API Gateway acts as the enforcement layer.
-
-Responsibilities:
-
-* JWT validation
-* Request interception
-* Communication with Limiting Service
-* Blocking excessive traffic
-* Forwarding approved traffic
-
-Advantages:
-
-* Centralized control
-* No duplicated logic
-* Easier maintenance
-* Better observability
+* SaaS Platforms
+* API Gateways
+* Cloud Services
+* Multi-Tenant Applications
 
 ---
 
-# 🏗️ Microservices
+# 📸 API Documentation
 
-### API Gateway
+## Authentication Service Swagger
 
-Responsible for:
+> Add Auth Service Swagger Screenshot Here
 
-* Request routing
-* Authentication validation
-* Rate limit enforcement
+![Auth Swagger](docs/auth-swagger.png)
 
----
+### Available APIs
 
-### Limiting Service
-
-Responsible for:
-
-* Token bucket management
-* Redis communication
-* Lua execution
-* Policy evaluation
+| Method | Endpoint       | Description          |
+| ------ | -------------- | -------------------- |
+| POST   | /signup        | Register User        |
+| POST   | /genrate_token | Generate JWT         |
+| GET    | /validate      | Validate JWT         |
+| GET    | /refresh_token | Refresh Access Token |
 
 ---
 
-### Auth Service
+## Limiting Service Swagger
 
-Responsible for:
 
-* User registration
-* Login
-* JWT generation
 
----
+### Available APIs
 
-### Analytics Service
-
-Reserved for:
-
-* Usage analytics
-* Traffic monitoring
-* Future dashboards
+| Method | Endpoint             | Description                       |
+| ------ | -------------------- | --------------------------------- |
+| POST   | /api/owner           | Create Organization Configuration |
+| PUT    | /api/owner/modify    | Update Rate Limit Policy          |
+| GET    | /api/owner/{ownerId} | Fetch Configuration               |
+| GET    | /api/limit/{user_id} | Execute Rate Limit Check          |
 
 ---
 
-# ⚙️ Technology Stack
+# 📸 Running Services
+
+## Docker Containers
+
+
+
+---
+
+## Redis Cluster
+
+
+
+---
+
+## Gateway Logs
+
+
+
+---
+
+## Successful Request
+
+> Add HTTP 200 Response Screenshot Here
+
+
+
+---
+
+## Rate Limit Exceeded
+
+
+
+---
+
+# 🏗️ Project Structure
+
+```bash
+Centralized_ratelimiting
+│
+├── api-gateway
+├── auth-service
+├── limiting-service
+├── analytics-service
+│
+├── docker-compose.yml
+├── pom.xml
+└── README.md
+```
+
+---
+
+# ⚙️ Tech Stack
 
 ## Backend
 
 * Java
 * Spring Boot
+* Spring Security
 * Spring Cloud Gateway
 
 ## Distributed Data Layer
@@ -443,105 +501,112 @@ Reserved for:
 
 ---
 
-# 📈 Example Use Cases
+# ▶️ Getting Started
 
-### SaaS Platforms
+## Clone Repository
 
-Different plans:
+```bash
+git clone https://github.com/manish123-ui/Centralised_rl.git
 
-```text
-Free      → 10 req/sec
-Pro       → 100 req/sec
-Enterprise→ 1000 req/sec
+cd Centralised_rl
 ```
 
 ---
 
-### Authentication APIs
+## Start Services
 
-Prevent:
-
-* Credential stuffing
-* Brute-force attacks
-
----
-
-### Public APIs
-
-Protect:
-
-* Backend resources
-* Database connections
-* Infrastructure costs
+```bash
+docker-compose up --build
+```
 
 ---
 
-### Multi-Tenant Systems
+## Configure Redis Cluster
 
-Each organization gets:
-
-* Separate bucket
-* Separate quota
-* Isolated traffic control
+```yaml
+spring:
+  data:
+    redis:
+      cluster:
+        nodes:
+          - redis-7000:7000
+          - redis-7001:7001
+          - redis-7002:7002
+```
 
 ---
 
-# 📊 Distributed Systems Concepts Demonstrated
+## Access Swagger
 
-This project showcases:
+Auth Service:
+
+```text
+http://localhost:4004/swagger-ui/index.html
+```
+
+Limiting Service:
+
+```text
+http://localhost:4001/swagger-ui/index.html
+```
+
+Gateway Swagger (if configured):
+
+```text
+http://localhost:4005/swagger-ui/index.html
+```
+
+---
+
+# 📈 Real World Use Cases
+
+* API Abuse Prevention
+* Authentication Endpoint Protection
+* SaaS Subscription Plans
+* Public API Monetization
+* Gateway Level Traffic Control
+* Cloud Service Quotas
+* Multi-Tenant Platforms
+
+---
+
+# 💡 Distributed Systems Concepts Demonstrated
 
 * API Gateway Pattern
-* Distributed Caching
-* Consistent Hashing
+* Centralized Control Plane
 * Redis Cluster Sharding
-* Token Bucket Rate Limiting
+* Consistent Hashing
+* Token Bucket Algorithm
 * Multi-Tenant Architecture
-* JWT-Based Context Propagation
-* Atomic Operations using Lua
-* High-Concurrency Design
-* Service Decoupling
+* JWT Context Propagation
+* Atomic Operations
+* Distributed State Management
+* High Concurrency Design
 
 ---
 
 # 🔮 Future Improvements
 
-* Role-Based Limits (Free / Premium / Enterprise)
-* Per-API Route Quotas
-* Dynamic Policy Updates
-* Admin Dashboard
-* Prometheus Metrics
-* Grafana Visualization
-* Circuit Breaker Integration
-* Redis Replication & Failover
-* Sliding Window Log Algorithm
+* Free vs Premium Plans
+* Per Route Rate Limits
+* Dynamic Rule Updates
+* Prometheus Integration
+* Grafana Dashboard
+* OpenTelemetry Tracing
+* Redis Replication
+* Sliding Window Algorithm
 * Leaky Bucket Algorithm
-* Distributed Tracing (OpenTelemetry)
-
----
-
-# 💡 Key Learnings
-
-Through this project I gained practical experience with:
-
-* Designing distributed systems
-* Building centralized platform services
-* Redis Cluster internals
-* Consistent hashing and sharding
-* Atomic Lua scripting
-* API Gateway architectures
-* Dockerized microservice deployments
-* Multi-tenant SaaS design patterns
-* High-concurrency backend systems
+* Kubernetes Deployment
 
 ---
 
 # 👨‍💻 Author
 
-Manish Kumar
+**Manish Kumar**
 
 GitHub:
 https://github.com/manish123-ui
 
 ---
 
-⭐ If you found this project interesting, consider giving the repository a star.
+⭐ If you found this project useful, consider giving the repository a star.
