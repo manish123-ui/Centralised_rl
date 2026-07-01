@@ -395,7 +395,9 @@ This architecture is suitable for:
 
 > Add Auth Service Swagger Screenshot Here
 
-![Auth Swagger](docs/auth-swagger.png)
+<img width="1897" height="907" alt="Screenshot 2026-06-08 153043" src="https://github.com/user-attachments/assets/17ca4d49-4783-4370-9ee9-d3b609015b92" />
+
+
 
 ### Available APIs
 
@@ -410,6 +412,7 @@ This architecture is suitable for:
 
 ## Limiting Service Swagger
 
+<img width="1911" height="892" alt="Screenshot 2026-06-08 153708" src="https://github.com/user-attachments/assets/42645aa5-729a-4393-bfee-3df04a8df89d" />
 
 
 ### Available APIs
