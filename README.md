@@ -393,7 +393,6 @@ This architecture is suitable for:
 
 ## Authentication Service Swagger
 
-> Add Auth Service Swagger Screenshot Here
 
 <img width="1897" height="907" alt="Screenshot 2026-06-08 153043" src="https://github.com/user-attachments/assets/17ca4d49-4783-4370-9ee9-d3b609015b92" />
 
@@ -445,10 +444,6 @@ This architecture is suitable for:
 
 
 ---
-
-## Successful Request
-
-> Add HTTP 200 Response Screenshot Here
 
 
 
